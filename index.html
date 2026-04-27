@@ -1,1 +1,305 @@
-<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Fondo de Amigos</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);min-height:100vh;color:#fff}.container{max-width:480px;margin:0 auto;padding:20px}.header{text-align:center;padding:30px 0}.header h1{font-size:28px;color:#fff}.header p{color:#888;margin-top:8px}.card{background:rgba(255,255,255,0.05);border-radius:16px;padding:20px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.1)}.balance{text-align:center}.balance .amount{font-size:42px;font-weight:bold;color:#4ade80}.balance .label{color:#888;font-size:14px}.form-group{margin-bottom:12px}.form-group label{display:block;font-size:13px;color:#888;margin-bottom:6px}.form-group input{width:100%;padding:12px;border:1px solid rgba(255,255,255,0.1);border-radius:8px;background:rgba(255,255,255,0.05);color:#fff;font-size:16px}.form-group input:focus{outline:none;border-color:#4ade80}.btn{width:100%;padding:14px;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;transition:opacity 0.2s}.btn-primary{background:#4ade80;color:#1a1a2e}.btn-danger{background:#ef4444;color:#fff;margin-top:8px}.btn:hover{opacity:0.9}.btn:disabled{opacity:0.5;cursor:not-allowed}.tabs{display:flex;margin-bottom:16px}.tab{flex:1;padding:12px;text-align:center;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);cursor:pointer;font-size:14px}.tab:first-child{border-radius:8px 0 0 8px}.tab:last-child{border-radius:0 8px 8px 0}.tab.active{background:#4ade80;color:#1a1a2e}.friend-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.1)}.friend-item:last-child{border-bottom:none}.friend-name{font-weight:500}.friend-amount{color:#4ade80;font-weight:600}.btn-remove{background:rgba(239,68,68,0.2);color:#ef4444;border:1px solid #ef4444;padding:4px 10px;border-radius:4px;font-size:12px;cursor:pointer;margin-left:8px}.btn-remove:hover{background:#ef4444;color:#fff}.loading{text-align:center;color:#888;padding:20px}.empty{text-align:center;color:#666;padding:20px;font-style:italic}.message{padding:10px;border-radius:8px;margin-bottom:16px;text-align:center;font-size:14px}.message.success{background:rgba(74,222,128,0.2);color:#4ade80}.message.error{background:rgba(239,68,68,0.2);color:#ef4444}.deposit-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.1)}.deposit-item:last-child{border-bottom:none}.deposit-name{font-weight:500}.deposit-friend{color:#888;font-size:13px}.deposit-month{color:#888;font-size:13px}.deposit-amount{color:#4ade80;font-weight:600}.deposit-total{font-size:13px;color:#888;margin-bottom:12px;text-align:right}.month-section{margin-bottom:20px}.month-title{font-size:15px;font-weight:600;color:#fff;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(255,255,255,0.1)}.month-total{font-size:13px;color:#4ade80;margin-bottom:8px}</style></head><body><div class="container"><div class="header"><h1>Fondo de Amigos</h1><p>Gestiona tus gastos compartidos</p></div><div id="message" class="message" style="display:none;"></div><div class="card balance"><div class="amount" id="totalBalance">$0</div><div class="label">Total mensual del fondo</div></div><div class="tabs"><div class="tab active" onclick="showTab('friends')">Amigos</div><div class="tab" onclick="showTab('deposit')">Nuevo Depósito</div><div class="tab" onclick="showTab('deposits')">Depósitos</div></div><div id="friendsTab"><div class="card"><div id="friendsList"><div class="loading">Cargando...</div></div></div><div class="card"><div class="form-group"><label>Nombre del amigo</label><input type="text" id="friendName" placeholder="Ej. Ana García"></div><div class="form-group"><label>Monto mensual ($)</label><input type="number" id="friendAmount" placeholder="Ej. 500"></div><button class="btn btn-primary" onclick="addFriend()">Agregar Amigo</button></div></div><div id="depositTab" style="display:none;"><div class="card"><div class="form-group"><label>Selecciona amigo</label><select id="depositFriend" style="width:100%;padding:12px;border:1px solid rgba(255,255,255,0.1);border-radius:8px;background:rgba(255,255,255,0.05);color:#fff;font-size:16px;"><option value="">-- Seleccionar --</option></select></div><div class="form-group"><label>Mes</label><input type="month" id="depositMonth"></div><div class="form-group"><label>Monto depositado ($)</label><input type="number" id="depositAmount" placeholder="Ej. 500"></div><button class="btn btn-primary" onclick="addDeposit()">Registrar Depósito</button></div></div><div id="depositsTab" style="display:none;"><div class="card"><div id="depositsList"><div class="loading">Cargando...</div></div></div></div></div><script>const API_URL='https://script.google.com/macros/s/AKfycbzky_aEeCrDfkbHYPEJzbuPJMzWkK_yjetQTh1rGcb_tz1xTFdw_mf3iKANCBpXE9g/exec';let friends=[];let deposits=[];function showMessage(text,type){const el=document.getElementById('message');el.textContent=text;el.className='message '+type;el.style.display='block';setTimeout(()=>el.style.display='none',3000)}async function fetchFriends(){try{const res=await fetch(API_URL+'?action=getAmigos');const data=await res.json();friends=data.amigos||[];renderFriends();updateBalance();updateSelect()}catch(e){document.getElementById('friendsList').innerHTML='<div class="empty">Error al cargar amigos</div>'}}function renderFriends(){const list=document.getElementById('friendsList');if(friends.length===0){list.innerHTML='<div class="empty">No hay amigos agregados</div>';return}list.innerHTML=friends.map(f=>'<div class="friend-item"><div><span class="friend-name">'+f.nombre+'</span><button class="btn-remove" onclick="removeFriend(\''+f.id+'\')">Eliminar</button></div><span class="friend-amount">$'+f.monthlyAmount+'/mes</span></div>').join('')}function updateBalance(){const total=friends.reduce((sum,f)=>sum+(parseFloat(f.monthlyAmount)||0),0);document.getElementById('totalBalance').textContent='$'+total.toLocaleString()}function updateSelect(){const sel=document.getElementById('depositFriend');sel.innerHTML='<option value="">-- Seleccionar --</option>'+friends.map(f=>'<option value="'+f.id+'">'+f.nombre+'</option>').join('')}function showTab(tab){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));event.target.classList.add('active');document.getElementById('friendsTab').style.display=tab==='friends'?'block':'none';document.getElementById('depositTab').style.display=tab==='deposit'?'block':'none';document.getElementById('depositsTab').style.display=tab==='deposits'?'block':'none';if(tab==='deposits')fetchDeposits()}async function fetchDeposits(){try{const res=await fetch(API_URL+'?action=getDepositos');const data=await res.json();deposits=data.depositos||[];renderDeposits()}catch(e){document.getElementById('depositsList').innerHTML='<div class="empty">Error al cargar depósitos</div>'}}function renderDeposits(){const list=document.getElementById('depositsList');if(deposits.length===0){list.innerHTML='<div class="empty">No hay depósitos registrados</div>';return}const total=deposits.reduce((sum,d)=>sum+(parseFloat(d.amount)||0),0);const byMonth={};deposits.forEach(d=>{const m=(d.month||'').slice(0,7);if(!byMonth[m])byMonth[m]={name:'',items:[]};byMonth[m].name=d.month?new Date(d.month).toLocaleDateString('es-MX',{year:'numeric',month:'long'}):'Sin mes';byMonth[m].items.push(d)});const months=Object.keys(byMonth).sort().reverse();const sections=months.map(m=>{const section=byMonth[m];const sectionTotal=section.items.reduce((s,i)=>s+(parseFloat(i.amount)||0),0);const items=section.items.map(d=>{const rmBtn='<button class="btn-remove" onclick="removeDeposit(\''+d.id+'\')">Eliminar</button>';return'<div class="deposit-item"><div><span class="deposit-name">'+d.friendName+'</span><br><span class="deposit-month">'+section.name+'</span></div><div style="text-align:right"><span class="deposit-amount">$'+d.amount+'</span><br>'+rmBtn+'</div></div>'}).join('');return'<div class="month-section"><div class="month-title">'+section.name+' <span style="font-weight:400;color:#888">($'+sectionTotal.toLocaleString()+')</span></div>'+items+'</div>'}).join('');list.innerHTML='<div class="deposit-total">Total depositado: <strong>$'+total.toLocaleString()+'</strong></div>'+sections}async function addFriend(){const name=document.getElementById('friendName').value.trim();const amount=document.getElementById('friendAmount').value.trim();if(!name||!amount){showMessage('Completa todos los campos','error');return}try{const res=await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'addAmigo',nombre:name,monto_mensual:parseFloat(amount)})});const data=await res.json();if(data.success){showMessage('Amigo agregado','success');document.getElementById('friendName').value='';document.getElementById('friendAmount').value='';fetchFriends()}else{showMessage(data.error||'Error','error')}}catch(e){showMessage('Error de conexión','error')}}async function removeFriend(id){if(!confirm('¿Eliminar este amigo?'))return;try{const res=await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'removeAmigo',id:id})});const data=await res.json();if(data.success){showMessage('Amigo eliminado','success');fetchFriends()}else{showMessage(data.error||'Error','error')}}catch(e){showMessage('Error de conexión','error')}}async function removeDeposit(id){if(!confirm('¿Eliminar este depósito?'))return;try{const res=await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'removeDeposito',id:id})});const data=await res.json();if(data.success){showMessage('Depósito eliminado','success');fetchDeposits()}else{showMessage(data.error||'Error','error')}}catch(e){showMessage('Error de conexión','error')}}async function addDeposit(){const friendId=document.getElementById('depositFriend').value;const month=document.getElementById('depositMonth').value;const amount=document.getElementById('depositAmount').value.trim();if(!friendId||!month||!amount){showMessage('Completa todos los campos','error');return}try{const res=await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'addDeposito',friendId:friendId,mes:month,monto:parseFloat(amount)})});const data=await res.json();if(data.success){showMessage('Depósito registrado','success');document.getElementById('depositAmount').value='';document.getElementById('depositMonth').value=''}else{showMessage(data.error||'Error','error')}}catch(e){showMessage('Error de conexión','error')}}document.addEventListener('DOMContentLoaded',()=>{const today=new Date().toISOString().slice(0,7);document.getElementById('depositMonth').value=today;fetchFriends()});</script></body></html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fondo de Amigos</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #fff; min-height: 100vh; }
+    .container { max-width: 480px; margin: 0 auto; padding: 20px; }
+    .header { text-align: center; padding: 30px 0; }
+    .header h1 { font-size: 28px; color: #fff; }
+    .header p { color: #888; margin-top: 8px; }
+    .card { background: rgba(255,255,255,0.05); border-radius: 16px; padding: 20px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.1); }
+    .balance { text-align: center; }
+    .balance #totalBalance { font-size: 42px; color: #4ade80; font-weight: bold; }
+    .balance .label { color: #888; font-size: 14px; }
+    .tabs { display: flex; margin-bottom: 16px; text-align: center; }
+    .tab { flex: 1; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: opacity 0.2s; }
+    .tab:first-child { border-radius: 8px 0 0 8px; }
+    .tab:last-child { border-radius: 0 8px 8px 0; }
+    .tab.active { background: #4ade80; color: #1a1a2e; }
+    .friend-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .friend-item:last-child { border-bottom: none; }
+    .friend-name { font-weight: 500; }
+    .friend-amount { color: #4ade80; font-weight: 600; }
+    .btn-remove { background: #ef4444; border: none; color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-left: 8px; }
+    .btn-remove:hover { background: #ff4444; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; color: #888; font-size: 13px; margin-bottom: 6px; }
+    .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: rgba(255,255,255,0.05); color: #fff; font-size: 16px; }
+    .form-group select { cursor: pointer; }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: #4ade80; }
+    .btn-primary { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; background: #4ade80; color: #1a1a2e; }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .deposit-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .deposit-item:last-child { border-bottom: none; }
+    .deposit-name { font-weight: 500; }
+    .deposit-month { color: #888; font-size: 13px; }
+    .deposit-amount { color: #4ade80; font-weight: 600; }
+    .message { padding: 10px; border-radius: 8px; margin-bottom: 16px; text-align: center; font-size: 14px; }
+    .message.success { background: rgba(74, 222, 128, 0.2); color: #4ade80; }
+    .message.error { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+    .empty { text-align: center; color: #666; padding: 20px; font-style: italic; }
+    .loading { text-align: center; color: #888; padding: 20px; }
+    .deposit-total { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .month-title { font-size: 15px; font-weight: 600; color: #fff; margin: 10px 0; padding-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .month-total { font-size: 13px; color: #888; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+    <div class="container">
+    <div class="header">
+      <h1>Fondo de Amigos</h1>
+      <p>Gestiona tus gastos compartidos</p>
+    </div>
+
+    <div class="card balance">
+      <div class="amount" id="totalBalance">$0</div>
+      <div class="label">Total mensual del fondo</div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('friends')">Amigos</div>
+      <div class="tab" onclick="showTab('deposit')">Nuevo Depósito</div>
+      <div class="tab" onclick="showTab('deposits')">Depósitos</div>
+    </div>
+
+    <div id="friendsTab">
+      <div class="card" id="friendsList">
+        <div class="loading">Cargando...</div>
+      </div>
+      <div class="card">
+        <div class="form-group">
+          <label>Nombre del amigo</label>
+          <input type="text" id="friendName" placeholder="Ej. Ana García">
+        </div>
+        <div class="form-group">
+          <label>Monto mensual ($)</label>
+          <input type="number" id="friendAmount" placeholder="Ej. 500">
+        </div>
+        <button class="btn-primary" onclick="addFriend()">Agregar Amigo</button>
+      </div>
+    </div>
+
+    <div id="depositTab" style="display:none;">
+      <div class="card">
+        <div class="form-group">
+          <label>Selecciona amigo</label>
+          <select id="depositFriend" style="width:100%;padding:12px;border:1px solid rgba(255,255,255,0.1);border-radius:8px;background:rgba(255,255,255,0.05);color:#fff;">
+            <option value="">-- Seleccionar --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Mes</label>
+          <input type="month" id="depositMonth">
+        </div>
+        <div class="form-group">
+          <label>Monto depositado ($)</label>
+          <input type="number" id="depositAmount" placeholder="Ej. 500">
+        </div>
+        <button class="btn-primary" onclick="addDeposit()">Registrar Depósito</button>
+      </div>
+    </div>
+
+    <div id="depositsTab" style="display:none;">
+      <div class="card" id="depositsList">
+        <div class="loading">Cargando...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzky_aEeCrDfkbHYPEJzbuPJMzWkK_yjetQTh1rGcb_tz1xTFdw_mf3iKANCBpXE9g/exec';
+    let friends = [];
+    let deposits = [];
+
+    function showMessage(text, type) {
+      const el = document.getElementById('message');
+      el.textContent = text;
+      el.className = 'message ' + type;
+      el.style.display = 'block';
+      setTimeout(() => { el.style.display = 'none'; }, 3000);
+    }
+
+    async function fetchFriends() {
+      try {
+        const res = await fetch(API_URL + '?action=getAmigos');
+        const data = await res.json();
+        friends = data.amigos || [];
+        renderFriends();
+        updateBalance();
+        updateSelect();
+      } catch (e) {
+        document.getElementById('friendsList').innerHTML = '<div class="empty">Error al cargar</div>';
+      }
+    }
+
+    function renderFriends() {
+      const list = document.getElementById('friendsList');
+      if (friends.length === 0) {
+        list.innerHTML = '<div class="empty">No hay amigos registrados</div>';
+        return;
+      }
+      list.innerHTML = friends.map(f => {
+        const btn = '<button class="btn-remove" onclick="removeFriend(\'' + f.id + '\')">Eliminar</button>';
+        return '<div class="friend-item"><span class="friend-name">' + f.nombre + '</span><span class="friend-amount">$' + f.monthlyAmount.toLocaleString() + '/mes</span>' + btn + '</div>';
+      }).join('');
+    }
+
+    function updateBalance() {
+      const total = friends.reduce((sum, f) => sum + (f.monthlyAmount || 0), 0);
+      document.getElementById('totalBalance').textContent = '$' + total.toLocaleString();
+    }
+
+    function updateSelect() {
+      const sel = document.getElementById('depositFriend');
+      sel.innerHTML = '<option value="">-- Seleccionar --</option>' +
+        friends.map(f => '<option value="' + f.id + '">' + f.nombre + '</option>').join('');
+    }
+
+    async function addFriend() {
+      const nombre = document.getElementById('friendName').value.trim();
+      const monto = parseFloat(document.getElementById('friendAmount').value);
+      if (!nombre || !monto) {
+        showMessage('Completa todos los campos', 'error');
+        return;
+      }
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'addAmigo', nombre, monto_mensual: monto })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showMessage('Amigo agregado', 'success');
+          document.getElementById('friendName').value = '';
+          document.getElementById('friendAmount').value = '';
+          fetchFriends();
+        } else {
+          showMessage(data.message || 'Error', 'error');
+        }
+      } catch (e) {
+        showMessage('Error de conexión', 'error');
+      }
+    }
+
+    async function removeFriend(id) {
+      if (!confirm('¿Eliminar este amigo?')) return;
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'removeAmigo', id })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showMessage('Eliminado', 'success');
+          fetchFriends();
+          fetchDeposits();
+        } else {
+          showMessage(data.message || 'Error', 'error');
+        }
+      } catch (e) {
+        showMessage('Error de conexión', 'error');
+      }
+    }
+
+    function showTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('friendsTab').style.display = tab === 'friends' ? 'block' : 'none';
+      document.getElementById('depositTab').style.display = tab === 'deposit' ? 'block' : 'none';
+      document.getElementById('depositsTab').style.display = tab === 'deposits' ? 'block' : 'none';
+    }
+
+    async function fetchDeposits() {
+      try {
+        const res = await fetch(API_URL + '?action=getDepositos');
+        const data = await res.json();
+        deposits = data.depositos || [];
+        renderDeposits();
+      } catch (e) {
+        document.getElementById('depositsList').innerHTML = '<div class="empty">Error al cargar depósitos</div>';
+      }
+    }
+
+    function renderDeposits() {
+      const list = document.getElementById('depositsList');
+      if (deposits.length === 0) {
+        list.innerHTML = '<div class="empty">No hay depósitos registrados</div>';
+        return;
+      }
+      const byMonth = {};
+      let total = 0;
+      deposits.forEach(d => {
+        if (!byMonth[d.month]) byMonth[d.month] = [];
+        byMonth[d.month].push(d);
+        total += d.amount || 0;
+      });
+      const months = Object.keys(byMonth).sort().reverse();
+      const sections = months.map(m => {
+        const items = byMonth[m].map(d => {
+          const rmBtn = '<button class="btn-remove" onclick="removeDeposit(\'' + d.id + '\')">Eliminar</button>';
+          return '<div class="deposit-item"><div><span class="deposit-name">' + d.friendName + '</span><br><span class="deposit-month">' + m + '</span></div><div style="text-align:right"><span class="deposit-amount">$' + d.amount.toLocaleString() + '</span><br>' + rmBtn + '</div></div>';
+        }).join('');
+        const monthTotal = byMonth[m].reduce((s, d) => s + d.amount, 0);
+        return '<div class="month-section"><div class="month-title">' + m + ' <span class="month-total">($' + monthTotal.toLocaleString() + ')</span></div>' + items + '</div>';
+      }).join('');
+      list.innerHTML = '<div class="deposit-total">Total depositado: <strong>$' + total.toLocaleString() + '</strong></div>' + sections;
+    }
+
+    async function addDeposit() {
+      const friendId = document.getElementById('depositFriend').value;
+      const mes = document.getElementById('depositMonth').value;
+      const monto = parseFloat(document.getElementById('depositAmount').value);
+      if (!friendId || !mes || !monto) {
+        showMessage('Completa todos los campos', 'error');
+        return;
+      }
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'addDeposito', friendId, mes, monto })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showMessage('Depósito registrado', 'success');
+          document.getElementById('depositAmount').value = '';
+          fetchDeposits();
+        } else {
+          showMessage(data.message || 'Error', 'error');
+        }
+      } catch (e) {
+        showMessage('Error de conexión', 'error');
+      }
+    }
+
+    async function removeDeposit(id) {
+      if (!confirm('¿Eliminar este depósito?')) return;
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'removeDeposito', id })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showMessage('Eliminado', 'success');
+          fetchDeposits();
+        } else {
+          showMessage(data.message || 'Error', 'error');
+        }
+      } catch (e) {
+        showMessage('Error de conexión', 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchFriends();
+      fetchDeposits();
+      document.getElementById('depositMonth').value = new Date().toISOString().slice(0, 7);
+    });
+  </script>
+</body>
+</html>
