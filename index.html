@@ -73,6 +73,15 @@
         }
         .message.success { background: rgba(74,222,128,0.2); color: #4ade80; }
         .message.error { background: rgba(239,68,68,0.2); color: #ef4444; }
+        .deposit-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .deposit-item:last-child { border-bottom: none; }
+        .deposit-name { font-weight: 500; }
+        .deposit-month { color: #888; font-size: 13px; }
+        .deposit-amount { color: #4ade80; font-weight: 600; }
+        .deposit-total { font-size: 13px; color: #888; margin-bottom: 12px; text-align: right; }
     </style>
 </head>
 <body>
@@ -92,6 +101,7 @@
         <div class="tabs">
             <div class="tab active" onclick="showTab('friends')">Amigos</div>
             <div class="tab" onclick="showTab('deposit')">Nuevo Depósito</div>
+            <div class="tab" onclick="showTab('deposits')">Depósitos</div>
         </div>
 
         <div id="friendsTab">
@@ -132,11 +142,20 @@
                 <button class="btn btn-primary" onclick="addDeposit()">Registrar Depósito</button>
             </div>
         </div>
+
+        <div id="depositsTab" style="display:none;">
+            <div class="card">
+                <div id="depositsList">
+                    <div class="loading">Cargando...</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
         const API_URL = 'https://script.google.com/macros/s/AKfycbzky_aEeCrDfkbHYPEJzbuPJMzWkK_yjetQTh1rGcb_tz1xTFdw_mf3iKANCBpXE9g/exec';
         let friends = [];
+        let deposits = [];
 
         function showMessage(text, type) {
             const el = document.getElementById('message');
@@ -184,6 +203,34 @@
             event.target.classList.add('active');
             document.getElementById('friendsTab').style.display = tab === 'friends' ? 'block' : 'none';
             document.getElementById('depositTab').style.display = tab === 'deposit' ? 'block' : 'none';
+            document.getElementById('depositsTab').style.display = tab === 'deposits' ? 'block' : 'none';
+            if (tab === 'deposits') fetchDeposits();
+        }
+
+        async function fetchDeposits() {
+            try {
+                const res = await fetch(API_URL + '?action=getDepositos');
+                const data = await res.json();
+                deposits = data.depositos || [];
+                renderDeposits();
+            } catch (e) {
+                document.getElementById('depositsList').innerHTML = '<div class="empty">Error al cargar depósitos</div>';
+            }
+        }
+
+        function renderDeposits() {
+            const list = document.getElementById('depositsList');
+            if (deposits.length === 0) {
+                list.innerHTML = '<div class="empty">No hay depósitos registrados</div>';
+                return;
+            }
+            const total = deposits.reduce((sum, d) => sum + (parseFloat(d.amount) || 0), 0);
+            const items = deposits.map(d => {
+                const monthDate = new Date(d.month);
+                const monthStr = monthDate.toLocaleDateString('es-MX', { year: 'numeric', month: 'long' });
+                return '<div class="deposit-item"><div><span class="deposit-name">Depósito</span><br><span class="deposit-month">' + monthStr + '</span></div><span class="deposit-amount">$' + d.amount + '</span></div>';
+            }).join('');
+            list.innerHTML = '<div class="deposit-total">Total depositado: <strong>$' + total.toLocaleString() + '</strong></div>' + items;
         }
 
         async function addFriend() {
