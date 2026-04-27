@@ -5,34 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fondo de Amigos</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
             color: #fff;
         }
-        .container {
-            max-width: 480px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .header {
-            text-align: center;
-            padding: 30px 0;
-        }
-        .header h1 {
-            font-size: 28px;
-            color: #fff;
-        }
-        .header p {
-            color: #888;
-            margin-top: 8px;
-        }
+        .container { max-width: 480px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; padding: 30px 0; }
+        .header h1 { font-size: 28px; color: #fff; }
+        .header p { color: #888; margin-top: 8px; }
         .card {
             background: rgba(255,255,255,0.05);
             border-radius: 16px;
@@ -40,146 +23,56 @@
             margin-bottom: 16px;
             border: 1px solid rgba(255,255,255,0.1);
         }
-        .balance {
-            text-align: center;
-        }
-        .balance .amount {
-            font-size: 42px;
-            font-weight: bold;
-            color: #4ade80;
-        }
-        .balance .label {
-            color: #888;
-            font-size: 14px;
-        }
-        .form-group {
-            margin-bottom: 12px;
-        }
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            color: #888;
-            margin-bottom: 6px;
-        }
+        .balance { text-align: center; }
+        .balance .amount { font-size: 42px; font-weight: bold; color: #4ade80; }
+        .balance .label { color: #888; font-size: 14px; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 13px; color: #888; margin-bottom: 6px; }
         .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px;
-            background: rgba(255,255,255,0.05);
-            color: #fff;
-            font-size: 16px;
+            width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; background: rgba(255,255,255,0.05);
+            color: #fff; font-size: 16px;
         }
-        .form-group input:focus {
-            outline: none;
-            border-color: #4ade80;
-        }
+        .form-group input:focus { outline: none; border-color: #4ade80; }
         .btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s;
+            width: 100%; padding: 14px; border: none; border-radius: 8px;
+            font-size: 16px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;
         }
-        .btn-primary {
-            background: #4ade80;
-            color: #1a1a2e;
-        }
-        .btn-danger {
-            background: #ef4444;
-            color: #fff;
-            margin-top: 8px;
-        }
-        .btn:hover {
-            opacity: 0.9;
-        }
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .tabs {
-            display: flex;
-            margin-bottom: 16px;
-        }
+        .btn-primary { background: #4ade80; color: #1a1a2e; }
+        .btn-danger { background: #ef4444; color: #fff; margin-top: 8px; }
+        .btn:hover { opacity: 0.9; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .tabs { display: flex; margin-bottom: 16px; }
         .tab {
-            flex: 1;
-            padding: 12px;
-            text-align: center;
+            flex: 1; padding: 12px; text-align: center;
             background: rgba(255,255,255,0.05);
             border: 1px solid rgba(255,255,255,0.1);
-            cursor: pointer;
-            font-size: 14px;
+            cursor: pointer; font-size: 14px;
         }
-        .tab:first-child {
-            border-radius: 8px 0 0 8px;
-        }
-        .tab:last-child {
-            border-radius: 0 8px 8px 0;
-        }
-        .tab.active {
-            background: #4ade80;
-            color: #1a1a2e;
-        }
+        .tab:first-child { border-radius: 8px 0 0 8px; }
+        .tab:last-child { border-radius: 0 8px 8px 0; }
+        .tab.active { background: #4ade80; color: #1a1a2e; }
         .friend-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1);
         }
-        .friend-item:last-child {
-            border-bottom: none;
-        }
-        .friend-name {
-            font-weight: 500;
-        }
-        .friend-amount {
-            color: #4ade80;
-            font-weight: 600;
-        }
+        .friend-item:last-child { border-bottom: none; }
+        .friend-name { font-weight: 500; }
+        .friend-amount { color: #4ade80; font-weight: 600; }
         .btn-remove {
-            background: rgba(239,68,68,0.2);
-            color: #ef4444;
-            border: 1px solid #ef4444;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
-            margin-left: 8px;
+            background: rgba(239,68,68,0.2); color: #ef4444;
+            border: 1px solid #ef4444; padding: 4px 10px; border-radius: 4px;
+            font-size: 12px; cursor: pointer; margin-left: 8px;
         }
-        .btn-remove:hover {
-            background: #ef4444;
-            color: #fff;
-        }
-        .loading {
-            text-align: center;
-            color: #888;
-            padding: 20px;
-        }
-        .empty {
-            text-align: center;
-            color: #666;
-            padding: 20px;
-            font-style: italic;
-        }
+        .btn-remove:hover { background: #ef4444; color: #fff; }
+        .loading { text-align: center; color: #888; padding: 20px; }
+        .empty { text-align: center; color: #666; padding: 20px; font-style: italic; }
         .message {
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            text-align: center;
-            font-size: 14px;
+            padding: 10px; border-radius: 8px; margin-bottom: 16px;
+            text-align: center; font-size: 14px;
         }
-        .message.success {
-            background: rgba(74,222,128,0.2);
-            color: #4ade80;
-        }
-        .message.error {
-            background: rgba(239,68,68,0.2);
-            color: #ef4444;
-        }
+        .message.success { background: rgba(74,222,128,0.2); color: #4ade80; }
+        .message.error { background: rgba(239,68,68,0.2); color: #ef4444; }
     </style>
 </head>
 <body>
@@ -272,26 +165,18 @@
                 list.innerHTML = '<div class="empty">No hay amigos agregados</div>';
                 return;
             }
-            list.innerHTML = friends.map(f => `
-                <div class="friend-item">
-                    <div>
-                        <span class="friend-name">${f.nombre}</span>
-                        <button class="btn-remove" onclick="removeFriend(${f.id})">Eliminar</button>
-                    </div>
-                    <span class="friend-amount">$${f.monto_mensual}/mes</span>
-                </div>
-            `).join('');
+            list.innerHTML = friends.map(f => '<div class="friend-item"><div><span class="friend-name">' + f.nombre + '</span><button class="btn-remove" onclick="removeFriend(\'' + f.id + '\')">Eliminar</button></div><span class="friend-amount">$' + f.monthlyAmount + '/mes</span></div>').join('');
         }
 
         function updateBalance() {
-            const total = friends.reduce((sum, f) => sum + (parseFloat(f.monto_mensual) || 0), 0);
+            const total = friends.reduce((sum, f) => sum + (parseFloat(f.monthlyAmount) || 0), 0);
             document.getElementById('totalBalance').textContent = '$' + total.toLocaleString();
         }
 
         function updateSelect() {
             const sel = document.getElementById('depositFriend');
             sel.innerHTML = '<option value="">-- Seleccionar --</option>' +
-                friends.map(f => `<option value="${f.id}">${f.nombre}</option>`).join('');
+                friends.map(f => '<option value="' + f.id + '">' + f.nombre + '</option>').join('');
         }
 
         function showTab(tab) {
